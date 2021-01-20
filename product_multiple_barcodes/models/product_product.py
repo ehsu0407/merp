@@ -2,7 +2,6 @@
 # Part of Ventor modules. See LICENSE file for full copyright and licensing details.
 
 from odoo import models, fields, api, _
-from odoo.osv import expression
 from odoo.exceptions import UserError
 
 
