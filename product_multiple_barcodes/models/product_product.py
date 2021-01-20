@@ -22,14 +22,20 @@ class ProductProduct(models.Model):
 
     @api.model
     def _name_search(self, name, args=None, operator='ilike', limit=100, name_get_uid=None):
+        res = super(ProductProduct, self)._name_search(
+            name, args=args, operator=operator, limit=limit, name_get_uid=name_get_uid
+        )
+
+        if not name:
+            return res
+
         args = args or []
-        domain = []
-        if name:
-            domain = ['|', '|', ('name', operator, name), ('default_code', operator, name),
-                      '|', ('barcode', operator, name), ('barcode_ids', operator, name)]
-        product_id = self._search(expression.AND([domain, args]),
-                                  limit=limit, access_rights_uid=name_get_uid)
-        return self.browse(product_id).name_get()
+        domain = [('barcode_ids', '=', name)]
+        product_id = self._search(domain + args, limit=limit, access_rights_uid=name_get_uid)
+        new_res = models.lazy_name_get(self.browse(product_id).with_user(name_get_uid))
+        res.extend(new_res)
+
+        return res
 
     @api.constrains('barcode', 'barcode_ids', 'active')
     def _check_unique_barcode(self):
